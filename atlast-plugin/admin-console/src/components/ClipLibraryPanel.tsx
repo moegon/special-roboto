@@ -5,6 +5,7 @@ import type { AtlasClip } from "@/types";
 interface ClipLibraryPanelProps {
   clips?: AtlasClip[];
   isLoading: boolean;
+  canRefresh: boolean;
   selectedClipId?: string;
   onSelectClip: (clipId: string) => void;
   onStartChat: (clip: AtlasClip) => void;
@@ -22,6 +23,7 @@ const statusColors: Record<AtlasClip["status"], string> = {
 export const ClipLibraryPanel: React.FC<ClipLibraryPanelProps> = ({
   clips = [],
   isLoading,
+  canRefresh,
   selectedClipId,
   onSelectClip,
   onStartChat,
@@ -55,7 +57,8 @@ export const ClipLibraryPanel: React.FC<ClipLibraryPanelProps> = ({
         <button
           type="button"
           onClick={onRefresh}
-          className="rounded-md border border-slate-700 px-2 py-1 text-xs uppercase tracking-wide text-slate-300 hover:border-slate-500"
+          disabled={!canRefresh}
+          className="rounded-md border border-slate-700 px-2 py-1 text-xs uppercase tracking-wide text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-600"
         >
           Refresh
         </button>
@@ -72,7 +75,7 @@ export const ClipLibraryPanel: React.FC<ClipLibraryPanelProps> = ({
       <div className="flex-1 overflow-y-auto px-2 pb-8">
         {filteredClips.length === 0 && (
           <div className="px-4 py-8 text-center text-sm text-slate-500">
-            {isLoading ? "Loading clips…" : "No clips match your filters yet."}
+            {isLoading ? "Loading clips…" : canRefresh ? "No clips match your filters yet." : "Pipeline API not configured."}
           </div>
         )}
         <ul className="space-y-2">

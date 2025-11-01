@@ -8,6 +8,7 @@ Browser-based control surface for the Atlas media pipeline. Review and tag clips
 - **Multi-tenant chat** – orchestrate concurrent conversations against multiple OSS deployments.
 - **Model discovery** – auto-import locally hosted inference servers returned by `GET {modelDiscoveryBaseUrl}/v1/models`.
 - **Contract builder** – capture HTTP method, path, headers, and payload templates for each deployment.
+- **Chat-only mode** – leave the Atlas Pipeline API blank to disable clip syncing while continuing to orchestrate chats.
 
 ### Prerequisites
 

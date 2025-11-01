@@ -93,6 +93,8 @@ A companion React dashboard lives in `admin-console/`. It pairs with the VS Code
 - **Contract builder** – capture HTTP method, relative path, headers, and payload templates so Atlas can call each model correctly.
 - **Persistent settings** – API base URL and model definitions persist locally for quick rehydration.
 
+> 🛈 Running chat-only? Leave **Atlas Pipeline API** blank in the console settings to disable clip syncing while keeping model chat features active.
+
 ### Model discovery & contracts
 
 Open the **Settings** drawer inside the console to:

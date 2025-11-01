@@ -9,11 +9,14 @@ export function useClips() {
   const { apiBaseUrl } = useAtlasConfig();
   const queryClient = useQueryClient();
 
+  const hasPipeline = Boolean(apiBaseUrl?.trim());
+
   const clipsQuery = useQuery({
     queryKey: [...CLIPS_QUERY_KEY, apiBaseUrl],
     queryFn: () => fetchClips(apiBaseUrl),
+    enabled: hasPipeline,
     staleTime: 15_000,
-    refetchInterval: 30_000
+    refetchInterval: hasPipeline ? 30_000 : false
   });
 
   const updateMutation = useMutation({

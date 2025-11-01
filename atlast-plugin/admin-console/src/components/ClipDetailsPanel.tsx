@@ -5,6 +5,7 @@ interface ClipDetailsPanelProps {
   clip?: AtlasClip;
   onSave: (input: { clipId: string; tags: string[]; description?: string }) => Promise<void> | void;
   isSaving: boolean;
+  pipelineConfigured: boolean;
 }
 
 function formatTags(tags?: string[]): string {
@@ -18,7 +19,7 @@ function parseTags(value: string): string[] {
     .filter(Boolean);
 }
 
-export const ClipDetailsPanel: React.FC<ClipDetailsPanelProps> = ({ clip, onSave, isSaving }) => {
+export const ClipDetailsPanel: React.FC<ClipDetailsPanelProps> = ({ clip, onSave, isSaving, pipelineConfigured }) => {
   const [tags, setTags] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
@@ -110,7 +111,7 @@ export const ClipDetailsPanel: React.FC<ClipDetailsPanelProps> = ({ clip, onSave
       <footer className="border-t border-slate-800 px-6 py-4">
         <button
           type="button"
-          disabled={isSaving}
+          disabled={isSaving || !pipelineConfigured}
           onClick={async () => {
             try {
               setStatus("idle");
@@ -128,7 +129,7 @@ export const ClipDetailsPanel: React.FC<ClipDetailsPanelProps> = ({ clip, onSave
           }}
           className="w-full rounded-md bg-atlas-primary px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white hover:bg-atlas-primary/90 disabled:cursor-not-allowed disabled:bg-slate-700"
         >
-          {isSaving ? "Saving…" : "Save Changes"}
+          {pipelineConfigured ? (isSaving ? "Saving…" : "Save Changes") : "Configure pipeline to enable saving"}
         </button>
       </footer>
     </section>

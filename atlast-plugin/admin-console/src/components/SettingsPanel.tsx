@@ -135,6 +135,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
             className="mt-3 w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-atlas-accent focus:outline-none"
             placeholder="http://localhost:8080"
           />
+          <p className="mt-2 text-xs text-slate-500">
+            Leave blank to disable pipeline syncing (clip library, ingest, and metadata editing will be unavailable).
+          </p>
         </section>
 
         <section>

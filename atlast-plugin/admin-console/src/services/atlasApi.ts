@@ -29,7 +29,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export async function fetchClips(apiBaseUrl: string): Promise<AtlasClip[]> {
-  const response = await fetch(`${apiBaseUrl}/clips`);
+  const base = apiBaseUrl?.trim();
+  if (!base) {
+    return [];
+  }
+  const response = await fetch(`${base.replace(/\/$/, "")}/clips`);
   return handleResponse<AtlasClip[]>(response);
 }
 
@@ -38,7 +42,11 @@ export async function updateClip(
   clipId: string,
   payload: UpdateClipPayload
 ): Promise<AtlasClip> {
-  const response = await fetch(`${apiBaseUrl}/clips/${clipId}`, {
+  const base = apiBaseUrl?.trim();
+  if (!base) {
+    throw new Error("Atlas Pipeline API is not configured.");
+  }
+  const response = await fetch(`${base.replace(/\/$/, "")}/clips/${clipId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json"

@@ -5,11 +5,13 @@ import { ChatWorkspace } from "@/components/ChatWorkspace";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { useClips } from "@/hooks/useClips";
 import { useChatSessions } from "@/hooks/useChatSessions";
+import { useAtlasConfig } from "@/context/AtlasContext";
 import type { AtlasClip } from "@/types";
 
 const App: React.FC = () => {
   const { clipsQuery, updateMutation } = useClips();
   const { sessions, startSession, closeSession, renameSession, switchModel, sendMessage } = useChatSessions();
+  const { apiBaseUrl } = useAtlasConfig();
   const [selectedClipId, setSelectedClipId] = useState<string>();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string>();
@@ -75,10 +77,16 @@ const App: React.FC = () => {
         <ClipLibraryPanel
           clips={clips}
           isLoading={clipsQuery.isLoading || clipsQuery.isFetching}
+          canRefresh={Boolean(apiBaseUrl?.trim())}
           selectedClipId={selectedClipId}
           onSelectClip={setSelectedClipId}
           onStartChat={handleStartChatForClip}
-          onRefresh={() => clipsQuery.refetch()}
+          onRefresh={() => {
+            if (!apiBaseUrl?.trim()) {
+              return;
+            }
+            void clipsQuery.refetch();
+          }}
         />
         <ClipDetailsPanel
           clip={selectedClip}
@@ -86,6 +94,7 @@ const App: React.FC = () => {
             await updateMutation.mutateAsync(input);
           }}
           isSaving={updateMutation.isPending}
+          pipelineConfigured={Boolean(apiBaseUrl?.trim())}
         />
         <ChatWorkspace
           sessions={sessions}
