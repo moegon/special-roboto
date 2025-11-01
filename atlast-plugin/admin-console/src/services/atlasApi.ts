@@ -92,22 +92,39 @@ export async function sendChatRequest(
   return handleResponse<ChatResponsePayload>(response);
 }
 
-export async function discoverLocalModels(apiBaseUrl: string): Promise<DiscoveredModel[]> {
+export async function discoverLocalModels(modelDiscoveryBaseUrl: string): Promise<DiscoveredModel[]> {
+  if (!modelDiscoveryBaseUrl) {
+    return [];
+  }
   try {
     // For LM Studio and OpenAI-compatible endpoints, query /v1/models
-    const modelsUrl = `${apiBaseUrl}/v1/models`;
+    const trimmed = modelDiscoveryBaseUrl.replace(/\/$/, "");
+    const modelsUrl = trimmed.endsWith("/v1") ? `${trimmed}/models` : `${trimmed}/v1/models`;
     const response = await fetch(modelsUrl);
     if (response.status === 404) {
       return [];
     }
-    const data = await handleResponse<{ object: string; data: Array<{ id: string; owned_by?: string }> }>(response);
+    const data = await handleResponse<{
+      object: string;
+      data: Array<{
+        id: string;
+        owned_by?: string;
+        metadata?: {
+          endpoint?: string;
+          description?: string;
+        };
+      }>;
+    }>(response);
     
     // Convert OpenAI-format model list to DiscoveredModel format
     return (data.data || []).map((model) => ({
       id: model.id,
       name: model.id,
-      description: `Model: ${model.id}${model.owned_by ? ` (${model.owned_by})` : ""}`,
-      endpoint: apiBaseUrl
+      description:
+        model.metadata?.description ?? `Model: ${model.id}${model.owned_by ? ` (${model.owned_by})` : ""}`,
+      endpoint:
+        model.metadata?.endpoint ??
+        (trimmed.endsWith("/v1") ? `${trimmed}/chat/completions` : `${trimmed}/v1/chat/completions`)
     }));
   } catch (error) {
     console.warn("Failed to discover local models", error);

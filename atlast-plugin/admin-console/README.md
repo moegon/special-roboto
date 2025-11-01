@@ -6,7 +6,7 @@ Browser-based control surface for the Atlas media pipeline. Review and tag clips
 
 - **Clip governance** – search, tag, and describe Atlas clips with live syncing to the pipeline API.
 - **Multi-tenant chat** – orchestrate concurrent conversations against multiple OSS deployments.
-- **Model discovery** – auto-import locally hosted inference servers returned by `GET {apiBaseUrl}/models`.
+- **Model discovery** – auto-import locally hosted inference servers returned by `GET {modelDiscoveryBaseUrl}/v1/models`.
 - **Contract builder** – capture HTTP method, path, headers, and payload templates for each deployment.
 
 ### Prerequisites
@@ -25,7 +25,7 @@ npm run dev
 
 This launches a Vite dev server on `http://localhost:5173`. API calls to `/api/*` are proxied to `http://localhost:8080` (configure via `vite.config.ts` or the in-app settings drawer).
 
-> Tip: Run `cd ../mock-server && npm install && npm start` to spin up the companion Atlas mock API with `/clips`, `/ingest`, and `/models` while you develop the UI.
+> Tip: Run `cd ../mock-server && npm install && npm start` to spin up the companion Atlas mock API with `/clips`, `/ingest`, `/models`, and `/v1/models` while you develop the UI.
 
 ### Project layout
 
@@ -48,6 +48,7 @@ admin-console/
 - `GET /clips` – returns `AtlasClip[]` for the library panel.
 - `PATCH /clips/:id` – updates tags/description (extend as needed).
 - `GET /models` – optional discovery endpoint returning `DiscoveredModel[]` objects (`id`, `name`, `endpoint`, `description`).
+- `GET /v1/models` – OpenAI-compatible discovery endpoint returning `{ object: "list", data: [{ id, owned_by }] }`.
 - Model inference endpoints accept a chat payload:
   ```jsonc
   {

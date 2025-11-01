@@ -76,7 +76,7 @@ for (const clip of defaultClips) {
 app.get("/", (_req, res) => {
   res.json({
     service: "atlas-mock-server",
-    endpoints: ["/clips", "/clips/:id", "/ingest", "/models"],
+    endpoints: ["/clips", "/clips/:id", "/ingest", "/models", "/v1/models"],
     docs: "Use this mock service for local VS Code + admin console development."
   });
 });
@@ -141,6 +141,21 @@ app.post("/ingest", upload.single("file"), (req, res) => {
 
 app.get("/models", (_req, res) => {
   res.json(discoveredModels);
+});
+
+app.get("/v1/models", (_req, res) => {
+  res.json({
+    object: "list",
+    data: discoveredModels.map((model) => ({
+      id: model.id,
+      object: "model",
+      owned_by: "atlas-mock-server",
+      metadata: {
+        endpoint: model.endpoint,
+        description: model.description
+      }
+    }))
+  });
 });
 
 app.use((err, _req, res, _next) => {

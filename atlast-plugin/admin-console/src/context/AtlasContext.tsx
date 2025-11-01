@@ -3,8 +3,10 @@ import type { ModelDeployment, ModelContract } from "@/types";
 
 interface AtlasContextValue {
   apiBaseUrl: string;
+  modelDiscoveryBaseUrl: string;
   models: ModelDeployment[];
   setApiBaseUrl: (value: string) => void;
+  setModelDiscoveryBaseUrl: (value: string) => void;
   upsertModel: (model: ModelDeployment) => void;
   removeModel: (modelId: string) => void;
 }
@@ -15,11 +17,13 @@ const STORAGE_KEY = "atlas.admin.config";
 
 interface PersistedConfig {
   apiBaseUrl: string;
+  modelDiscoveryBaseUrl: string;
   models: ModelDeployment[];
 }
 
 const defaultConfig: PersistedConfig = {
-  apiBaseUrl: "http://172.16.1.81:1234",
+  apiBaseUrl: "http://localhost:8080",
+  modelDiscoveryBaseUrl: "http://172.16.1.81:1234",
   models: [
     {
       id: "lm-studio-local",
@@ -91,6 +95,7 @@ function loadConfig(): PersistedConfig {
     const parsed = JSON.parse(raw) as PersistedConfig;
     return {
       apiBaseUrl: parsed.apiBaseUrl ?? defaultConfig.apiBaseUrl,
+      modelDiscoveryBaseUrl: parsed.modelDiscoveryBaseUrl ?? defaultConfig.modelDiscoveryBaseUrl,
       models: parsed.models?.length ? parsed.models : defaultConfig.models
     };
   } catch (error) {
@@ -113,10 +118,18 @@ export const AtlasProvider: React.FC<React.PropsWithChildren> = ({ children }) =
   const value = useMemo<AtlasContextValue>(
     () => ({
       apiBaseUrl: config.apiBaseUrl,
+      modelDiscoveryBaseUrl: config.modelDiscoveryBaseUrl,
       models: config.models,
       setApiBaseUrl: (value: string) => {
         setConfig((prev) => {
           const next = { ...prev, apiBaseUrl: value };
+          persistConfig(next);
+          return next;
+        });
+      },
+      setModelDiscoveryBaseUrl: (value: string) => {
+        setConfig((prev) => {
+          const next = { ...prev, modelDiscoveryBaseUrl: value };
           persistConfig(next);
           return next;
         });

@@ -4,6 +4,7 @@ Interact with OpenAI Atlas pipelines without leaving VS Code. Ingest multimedia 
 
 ## Highlights
 
+- **🤖 AI Chat Assistant** – Interactive chat panel with support for LM Studio (local), OpenRouter (cloud), and custom APIs. Code assistance, debugging, and real-time streaming responses.
 - **One-click ingest** – add local audio, video, and image files to your Atlas pipeline directly from VS Code.
 - **Media library explorer** – browse, search, and preview ingested clips from a dedicated Activity Bar view.
 - **Offline-friendly caching** – when Atlas is unreachable, clips are persisted locally so your catalog stays available.
@@ -11,6 +12,25 @@ Interact with OpenAI Atlas pipelines without leaving VS Code. Ingest multimedia 
 - **Extensible foundation** – TypeScript architecture with clear separation between client API calls, tree data, and webview rendering.
 
 > ℹ️ This extension ships with minimal Atlas integration stubs. Replace the placeholder REST endpoints with your Atlas deployment details (or adapt the `AtlasClient` to call custom tooling APIs) to activate end-to-end workflows.
+
+## ✨ New in v0.1.0: AI Chat Integration
+
+Launch an interactive AI chat right in VS Code! Press `Ctrl+Shift+P` → `Atlas: Open AI Chat`
+
+**Supported Providers:**
+- **LM Studio** - Run Llama, Mistral, and other models locally (100% private)
+- **OpenRouter** - Access GPT-4, Claude 3.5, and 100+ cloud models
+- **Custom API** - Connect to any OpenAI-compatible endpoint
+
+**Features:**
+- Real-time streaming responses
+- Export conversations to Markdown
+- Adjustable temperature and token limits
+- Full conversation history
+
+See [`AI_CHAT_GUIDE.md`](./AI_CHAT_GUIDE.md) for detailed setup instructions.
+
+---
 
 ## Quick Start
 
@@ -69,7 +89,7 @@ A companion React dashboard lives in `admin-console/`. It pairs with the VS Code
 - **Library administration** – filter, tag, and annotate Atlas clips with real-time syncing against the pipeline API.
 - **Insight workspace** – launch multiple chat tracks in parallel, each pointed at a different hosted OSS model.
 - **Model registry** – configure inference gateways (vLLM, TGI, Modal, llamafile, etc.) and toggle defaults for new sessions.
-- **Local discovery** – auto-detect locally hosted models exposed at `{apiBaseUrl}/models` and import them in a single click.
+- **Local discovery** – auto-detect locally hosted models exposed at `{modelDiscoveryBaseUrl}/v1/models` and import them in a single click.
 - **Contract builder** – capture HTTP method, relative path, headers, and payload templates so Atlas can call each model correctly.
 - **Persistent settings** – API base URL and model definitions persist locally for quick rehydration.
 
@@ -77,7 +97,7 @@ A companion React dashboard lives in `admin-console/`. It pairs with the VS Code
 
 Open the **Settings** drawer inside the console to:
 
-- Scan `GET {apiBaseUrl}/models` for nearby inference gateways (vLLM, TGI, llamafile, etc.) and import them into the registry.
+- Scan `GET {modelDiscoveryBaseUrl}/v1/models` for nearby inference gateways (LM Studio, vLLM, TGI, llamafile, etc.) and import them into the registry.
 - Describe each hosted model’s contract by specifying the HTTP method, relative path, headers, and sample request template.
 - Persist multiple deployments and mark one as the default target for new chat sessions.
 
@@ -99,8 +119,9 @@ The server exposes:
 - `POST /ingest` – accepts `multipart/form-data` uploads with `file`, `tags`, and `description`.
 - `PATCH /clips/:id` – updates clip tags/description.
 - `GET /models` – surfaces locally hosted OSS model endpoints for the admin console discovery dropdown.
+- `GET /v1/models` – OpenAI-compatible discovery response that mirrors LM Studio for the admin console.
 
-Point both the VS Code extension (`atlas.apiBaseUrl`) and the React console (via the Settings drawer) to `http://localhost:8080` to interact with the mock service.
+Point the VS Code extension (`atlas.apiBaseUrl`) and the React console’s **Atlas Pipeline API** field to `http://localhost:8080`. Set the **Model Discovery Base URL** to the same address if you want the mock server to provide discovery responses.
 
 ## Configuration
 

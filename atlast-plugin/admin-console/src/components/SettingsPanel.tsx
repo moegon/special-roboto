@@ -60,7 +60,15 @@ const cloneModel = (model: ModelDeployment): ModelDeployment => ({
 });
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
-  const { apiBaseUrl, setApiBaseUrl, models, upsertModel, removeModel } = useAtlasConfig();
+  const {
+    apiBaseUrl,
+    modelDiscoveryBaseUrl,
+    setApiBaseUrl,
+    setModelDiscoveryBaseUrl,
+    models,
+    upsertModel,
+    removeModel
+  } = useAtlasConfig();
   const discovery = useDiscoveredModels(isOpen);
   const discoveredModels = discovery.data ?? [];
   const [selectedDiscoveredId, setSelectedDiscoveredId] = useState<string>("");
@@ -86,6 +94,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     [discoveredModels, selectedDiscoveredId]
   );
 
+  const discoveryModelsUrl = useMemo(() => {
+    if (!modelDiscoveryBaseUrl) {
+      return "";
+    }
+    const trimmed = modelDiscoveryBaseUrl.replace(/\/$/, "");
+    return trimmed.endsWith("/v1") ? `${trimmed}/models` : `${trimmed}/v1/models`;
+  }, [modelDiscoveryBaseUrl]);
+
   if (!isOpen) {
     return null;
   }
@@ -109,17 +125,33 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
         <section>
           <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Atlas Pipeline API</h3>
           <p className="mt-2 text-sm text-slate-400">
-            Configure the base URL for OpenAI-compatible API endpoints (LM Studio, OpenRouter, etc). The system will append /v1/models and other OpenAI paths automatically.
+            All media operations, catalog updates, and clip discovery calls use this base URL. Point it at your Atlas
+            pipeline (or the bundled mock server) so the console can manage clips and metadata.
           </p>
           <input
             type="url"
             value={apiBaseUrl}
             onChange={(event) => setApiBaseUrl(event.target.value)}
             className="mt-3 w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-atlas-accent focus:outline-none"
+            placeholder="http://localhost:8080"
+          />
+        </section>
+
+        <section>
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Model Discovery Base URL</h3>
+          <p className="mt-2 text-sm text-slate-400">
+            Provide the base URL for LM Studio or any OpenAI-compatible gateway that exposes <code className="rounded bg-slate-900 px-1 py-0.5 text-xs">/v1/models</code>.
+            Atlas will use this address when scanning for available deployments.
+          </p>
+          <input
+            type="url"
+            value={modelDiscoveryBaseUrl}
+            onChange={(event) => setModelDiscoveryBaseUrl(event.target.value)}
+            className="mt-3 w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-atlas-accent focus:outline-none"
             placeholder="http://172.16.1.81:1234"
           />
           <p className="mt-2 text-xs text-slate-500">
-            Examples: <code className="rounded bg-slate-900 px-1 py-0.5">http://172.16.1.81:1234</code> (LM Studio) or <code className="rounded bg-slate-900 px-1 py-0.5">https://api.openai.com</code> (OpenAI)
+            Examples: <code className="rounded bg-slate-900 px-1 py-0.5">http://172.16.1.81:1234</code> (LM Studio) or <code className="rounded bg-slate-900 px-1 py-0.5">https://api.openai.com</code> (OpenAI).
           </p>
         </section>
 
@@ -128,15 +160,28 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
             <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Discovered Local Models</h3>
             <button
               type="button"
-              onClick={() => discovery.refetch()}
-              className="rounded-md border border-slate-700 px-2 py-1 text-xs uppercase tracking-wide text-slate-300 hover:border-slate-500"
+              onClick={() => {
+                if (!modelDiscoveryBaseUrl) {
+                  return;
+                }
+                discovery.refetch();
+              }}
+              disabled={!modelDiscoveryBaseUrl}
+              className="rounded-md border border-slate-700 px-2 py-1 text-xs uppercase tracking-wide text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-600"
             >
               Refresh
             </button>
           </div>
-          <p className="mt-2 text-sm text-slate-400">
-            Atlas will query <code className="rounded bg-slate-900 px-1 py-0.5 text-xs">{apiBaseUrl}/v1/models</code> for available models from LM Studio or other OpenAI-compatible endpoints. Import a model to use it with the configured contract.
-          </p>
+          {discoveryModelsUrl ? (
+            <p className="mt-2 text-sm text-slate-400">
+              Atlas will query <code className="rounded bg-slate-900 px-1 py-0.5 text-xs">{discoveryModelsUrl}</code> for available models from
+              LM Studio or other OpenAI-compatible endpoints. Import a model to use it with the configured contract.
+            </p>
+          ) : (
+            <p className="mt-2 text-xs text-amber-400">
+              Set the model discovery base URL above to enable automatic model scanning.
+            </p>
+          )}
           <div className="mt-3 flex items-center gap-2">
             <select
               value={selectedDiscoveredId}
