@@ -20,6 +20,61 @@ interface ChatResponsePayload {
   latencyMs?: number;
 }
 
+function buildChatPayload(model: ModelDeployment, payload: ChatRequestPayload): unknown {
+  const template = model.contract?.requestTemplate;
+  if (!template) {
+    return {
+      ...payload,
+      metadata: payload.metadata && Object.keys(payload.metadata).length
+        ? { sessionId: payload.sessionId, ...payload.metadata }
+        : { sessionId: payload.sessionId }
+    };
+  }
+
+  try {
+    const parsed = typeof template === "string" ? JSON.parse(template) : template;
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      throw new Error("Template must be an object");
+    }
+
+    const body = { ...parsed } as Record<string, unknown>;
+    body.messages = payload.messages;
+
+    const mergedMetadata = {
+      ...(body.metadata as Record<string, unknown> | undefined),
+      ...(payload.metadata ?? {})
+    };
+    if (Object.keys(mergedMetadata).length > 0 || payload.sessionId) {
+      body.metadata = {
+        sessionId: payload.sessionId,
+        ...mergedMetadata
+      };
+    }
+
+    if (!("session_id" in body)) {
+      body.session_id = payload.sessionId;
+    }
+
+    if (!body.model) {
+      body.model = model.name || model.id;
+    }
+
+    if (body.stream === undefined) {
+      body.stream = false;
+    }
+
+    return body;
+  } catch (error) {
+    console.warn("Failed to parse request template, falling back to default payload", error);
+    return {
+      ...payload,
+      metadata: payload.metadata && Object.keys(payload.metadata).length
+        ? { sessionId: payload.sessionId, ...payload.metadata }
+        : { sessionId: payload.sessionId }
+    };
+  }
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await response.text();
@@ -90,10 +145,11 @@ export async function sendChatRequest(
 
   if (method === "GET") {
     const urlObj = new URL(url);
-    urlObj.searchParams.set("payload", JSON.stringify(payload));
+    const body = buildChatPayload(model, payload);
+    urlObj.searchParams.set("payload", JSON.stringify(body));
     url = urlObj.toString();
   } else {
-    init.body = JSON.stringify(payload);
+    init.body = JSON.stringify(buildChatPayload(model, payload));
   }
 
   const response = await fetch(url, init);
