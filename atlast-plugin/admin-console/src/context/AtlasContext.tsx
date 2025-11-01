@@ -19,13 +19,13 @@ interface PersistedConfig {
 }
 
 const defaultConfig: PersistedConfig = {
-  apiBaseUrl: "http://localhost:8080",
+  apiBaseUrl: "http://172.16.1.81:1234",
   models: [
     {
-      id: "llama-3-70b",
-      name: "Llama 3 70B (Inference Gateway)",
-      endpoint: "http://localhost:8000/inference",
-      description: "High-capacity OSS model served via vLLM or TGI.",
+      id: "lm-studio-local",
+      name: "LM Studio (Local OpenAI-Compatible)",
+      endpoint: "http://172.16.1.81:1234/v1/chat/completions",
+      description: "Local LM Studio instance with OpenAI-compatible API endpoints.",
       default: true,
       concurrencyLimit: 4,
       contract: {
@@ -36,11 +36,14 @@ const defaultConfig: PersistedConfig = {
         },
         requestTemplate: JSON.stringify(
           {
-            sessionId: "<uuid>",
+            model: "auto",
             messages: [
-              { role: "system", content: "You are an assistant." },
-              { role: "user", content: "Summarise the clip." }
-            ]
+              { role: "system", content: "You are an analyst specialised in multimedia intelligence." },
+              { role: "user", content: "Please summarise the attached clip." }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000,
+            stream: false
           },
           null,
           2
@@ -48,23 +51,28 @@ const defaultConfig: PersistedConfig = {
       }
     },
     {
-      id: "whisper-large",
-      name: "Whisper Large-v3 (Audio Intelligence)",
-      endpoint: "http://localhost:8001/inference",
-      description: "Audio transcription and understanding model.",
+      id: "openai-gpt4",
+      name: "OpenAI GPT-4 (Optional Cloud)",
+      endpoint: "https://api.openai.com/v1/chat/completions",
+      description: "Cloud-based OpenAI API (requires API key in Authorization header).",
       default: false,
       concurrencyLimit: 2,
       contract: {
         httpMethod: "POST",
         path: "/",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Authorization": "Bearer sk-your-api-key-here"
         },
         requestTemplate: JSON.stringify(
           {
-            sessionId: "<uuid>",
-            task: "transcribe",
-            audioUrl: "<clipPreviewUrl>"
+            model: "gpt-4",
+            messages: [
+              { role: "system", content: "You are an analyst specialised in multimedia intelligence." },
+              { role: "user", content: "Please summarise the attached clip." }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000
           },
           null,
           2

@@ -109,15 +109,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
         <section>
           <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Atlas Pipeline API</h3>
           <p className="mt-2 text-sm text-slate-400">
-            All media operations, catalog updates, and model discovery calls use this base URL.
+            Configure the base URL for OpenAI-compatible API endpoints (LM Studio, OpenRouter, etc). The system will append /v1/models and other OpenAI paths automatically.
           </p>
           <input
             type="url"
             value={apiBaseUrl}
             onChange={(event) => setApiBaseUrl(event.target.value)}
             className="mt-3 w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-atlas-accent focus:outline-none"
-            placeholder="http://localhost:8080"
+            placeholder="http://172.16.1.81:1234"
           />
+          <p className="mt-2 text-xs text-slate-500">
+            Examples: <code className="rounded bg-slate-900 px-1 py-0.5">http://172.16.1.81:1234</code> (LM Studio) or <code className="rounded bg-slate-900 px-1 py-0.5">https://api.openai.com</code> (OpenAI)
+          </p>
         </section>
 
         <section>
@@ -132,8 +135,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
             </button>
           </div>
           <p className="mt-2 text-sm text-slate-400">
-            Atlas will query <code className="rounded bg-slate-900 px-1 py-0.5 text-xs">{apiBaseUrl}/models</code> for
-            local inference gateways (vLLM, TGI, llamafile, etc.). Import a deployment to seed its contract.
+            Atlas will query <code className="rounded bg-slate-900 px-1 py-0.5 text-xs">{apiBaseUrl}/v1/models</code> for available models from LM Studio or other OpenAI-compatible endpoints. Import a model to use it with the configured contract.
           </p>
           <div className="mt-3 flex items-center gap-2">
             <select

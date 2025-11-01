@@ -94,11 +94,21 @@ export async function sendChatRequest(
 
 export async function discoverLocalModels(apiBaseUrl: string): Promise<DiscoveredModel[]> {
   try {
-    const response = await fetch(`${apiBaseUrl}/models`);
+    // For LM Studio and OpenAI-compatible endpoints, query /v1/models
+    const modelsUrl = `${apiBaseUrl}/v1/models`;
+    const response = await fetch(modelsUrl);
     if (response.status === 404) {
       return [];
     }
-    return handleResponse<DiscoveredModel[]>(response);
+    const data = await handleResponse<{ object: string; data: Array<{ id: string; owned_by?: string }> }>(response);
+    
+    // Convert OpenAI-format model list to DiscoveredModel format
+    return (data.data || []).map((model) => ({
+      id: model.id,
+      name: model.id,
+      description: `Model: ${model.id}${model.owned_by ? ` (${model.owned_by})` : ""}`,
+      endpoint: apiBaseUrl
+    }));
   } catch (error) {
     console.warn("Failed to discover local models", error);
     return [];
