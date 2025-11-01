@@ -1,132 +1,182 @@
-# Atlas Pipeline Toolkit
+# Atlas Pipeline Toolkit VS Code Extension
 
-Interact with OpenAI Atlas pipelines from both VS Code and the web. Ingest multimedia assets, organise and tag them for review, and send clips to your own hosted open-source models for downstream analysis.
+Interact with OpenAI Atlas pipelines without leaving VS Code. Ingest multimedia assets, organise and tag them for later review, and send clips to your own hosted open-source models for downstream analysis.
+
+## Highlights
+
+- **🤖 AI Chat Assistant** – Interactive chat panel with support for LM Studio (local), OpenRouter (cloud), and custom APIs. Code assistance, debugging, and real-time streaming responses.
+- **One-click ingest** – add local audio, video, and image files to your Atlas pipeline directly from VS Code.
+- **Media library explorer** – browse, search, and preview ingested clips from a dedicated Activity Bar view.
+- **Offline-friendly caching** – when Atlas is unreachable, clips are persisted locally so your catalog stays available.
+- **Custom model analysis** – connect any HTTP-compatible OSS model endpoint to score, classify, or summarise clips.
+- **Extensible foundation** – TypeScript architecture with clear separation between client API calls, tree data, and webview rendering.
+
+> ℹ️ This extension ships with minimal Atlas integration stubs. Replace the placeholder REST endpoints with your Atlas deployment details (or adapt the `AtlasClient` to call custom tooling APIs) to activate end-to-end workflows.
+
+## ✨ New in v0.1.0: AI Chat Integration
+
+Launch an interactive AI chat right in VS Code! Press `Ctrl+Shift+P` → `Atlas: Open AI Chat`
+
+**Supported Providers:**
+- **LM Studio** - Run Llama, Mistral, and other models locally (100% private)
+- **OpenRouter** - Access GPT-4, Claude 3.5, and 100+ cloud models
+- **Custom API** - Connect to any OpenAI-compatible endpoint
+
+**Features:**
+- Real-time streaming responses
+- Export conversations to Markdown
+- Adjustable temperature and token limits
+- Full conversation history
+
+See [`AI_CHAT_GUIDE.md`](./AI_CHAT_GUIDE.md) for detailed setup instructions.
+
+---
 
 ## Quick Start
 
-```
+```bash
 git clone https://github.com/moegon/special-roboto.git
 cd special-roboto
 npm install
 code .
 ```
 
-> Requirements: Node.js ≥ 20.19, VS Code ≥ 1.90, and Git. Once the workspace opens, feel free to enable GitHub Copilot or your preferred LLM assistant for inline help.
+> **Requirements:** Node.js ≥ 20.19, VS Code ≥ 1.90, and Git. Enable GitHub Copilot or your preferred LLM assistant once the workspace opens for inline help.
 
-### VS Code extension
+### Run the VS Code extension
 
-```
+```bash
 # inside the repo root
 npm install
 npm run compile
 ```
 
-Press `F5` in VS Code to launch the Extension Development Host, then configure `atlas.*` settings under `File → Preferences → Settings → Extensions → Atlas Pipeline Toolkit`.
+- Press `F5` in VS Code to launch the Extension Development Host.
+- Configure `atlas.apiBaseUrl`, `atlas.modelEndpoint`, etc. via `File → Preferences → Settings → Extensions → Atlas Pipeline Toolkit`.
 
-### React admin console
+### Run the React admin console
 
-```
+```bash
 cd admin-console
 npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173`, open the **Settings** drawer, and point the UI at your Atlas deployment or the mock server.
-
-### Optional mock Atlas API
-
-```
-cd mock-server
-npm install
-npm start
-```
-
-The mock service exposes `/clips`, `/ingest`, and `/models` so both the extension and admin console can run end to end without an Atlas backend.
-
-## Highlights
-
-- **One-click ingest** – add local audio, video, and image files to Atlas directly from VS Code.
-- **Media library explorer** – browse, search, and preview ingested clips from a dedicated Activity Bar view.
-- **Offline-friendly caching** – when Atlas is unreachable, clips persist locally so your catalog stays available.
-- **Custom model analysis** – connect any HTTP-compatible OSS model endpoint to score, classify, or summarise clips.
-- **Browser admin console** – manage catalog metadata and orchestrate chats with multiple hosted models.
+Visit `http://localhost:5173` and open the **Settings** drawer to point the UI at either the mock server or your Atlas deployment.
 
 ## Project Structure
 
 ```
 .
-├── package.json             # VS Code extension manifest
-├── tsconfig.json            # Extension TypeScript config
-├── src/                     # Extension source (commands, Atlas client, preview webview)
-├── media/                   # Activity Bar icon assets
-├── admin-console/           # React/Vite admin dashboard
-└── mock-server/             # Express mock API (clips/ingest/models)
+├── package.json             # Extension manifest
+├── tsconfig.json            # TypeScript build config
+├── src/
+│   ├── extension.ts         # Entry point & command wiring
+│   ├── atlasClient.ts       # Atlas REST client + model analysis bridge
+│   ├── mediaLibraryProvider.ts # TreeDataProvider for the media view
+│   └── panels/
+│       └── clipPreviewPanel.ts # Webview for clip previews
+├── media/                  # VS Code activity bar assets
+└── mock-server/            # Express mock API with /clips, /ingest, /models
 ```
 
-## VS Code Extension
+## Atlas Admin Console (React)
 
+A companion React dashboard lives in `admin-console/`. It pairs with the VS Code extension to offer a browser-first workstation for media governance, multi-model chat coordination, and operational analytics.
+
+### Features
+
+- **Library administration** – filter, tag, and annotate Atlas clips with real-time syncing against the pipeline API.
+- **Insight workspace** – launch multiple chat tracks in parallel, each pointed at a different hosted OSS model.
+- **Model registry** – configure inference gateways (vLLM, TGI, Modal, llamafile, etc.) and toggle defaults for new sessions.
+- **Local discovery** – auto-detect locally hosted models exposed at `{apiBaseUrl}/models` and import them in a single click.
+- **Contract builder** – capture HTTP method, relative path, headers, and payload templates so Atlas can call each model correctly.
+- **Persistent settings** – API base URL and model definitions persist locally for quick rehydration.
+
+### Model discovery & contracts
+
+Open the **Settings** drawer inside the console to:
+
+- Scan `GET {apiBaseUrl}/models` for nearby inference gateways (vLLM, TGI, llamafile, etc.) and import them into the registry.
+- Describe each hosted model’s contract by specifying the HTTP method, relative path, headers, and sample request template.
+- Persist multiple deployments and mark one as the default target for new chat sessions.
+
+The chat workspace now resolves the configured contract when issuing requests, ensuring payloads land on the right endpoint (e.g., `POST https://inference.local/v1/chat` with custom headers).
+
+### Mock Atlas API (optional)
+
+A lightweight Express server in `mock-server/` emulates the Atlas pipeline API, including clip catalog, ingest, and model discovery routes. Use it for end-to-end local development:
+
+```bash
+cd mock-server
+npm install
+npm start
 ```
-.
-├── src/extension.ts         # Entry point & command wiring
-├── src/atlasClient.ts       # Atlas REST client + model analysis bridge
-├── src/mediaLibraryProvider.ts # TreeDataProvider for the media view
-└── src/panels/clipPreviewPanel.ts # Webview for clip previews
-```
 
-### Core workflows
+The server exposes:
 
-- **Ingest media** – Run `Atlas: Ingest Media` or use the Media Library toolbar. Pick files, add optional tags/description, and the extension uploads them to Atlas (falling back to local cache on failure).
-- **Browse & preview** – The *Media Library* tree view displays each clip with status badges. Selecting an item opens a preview webview with metadata and embedded video/audio/image players (when a `previewUrl` is supplied).
-- **Analyse clips** – Right-click a clip (or run `Atlas: Analyse Clip`) to send it to your configured model endpoint. Results stream into the **Atlas Pipeline** output channel for quick review.
+- `GET /clips` – returns seeded sample clips.
+- `POST /ingest` – accepts `multipart/form-data` uploads with `file`, `tags`, and `description`.
+- `PATCH /clips/:id` – updates clip tags/description.
+- `GET /models` – surfaces locally hosted OSS model endpoints for the admin console discovery dropdown.
 
-### Configuration
+Point both the VS Code extension (`atlas.apiBaseUrl`) and the React console (via the Settings drawer) to `http://localhost:8080` to interact with the mock service.
+
+## Configuration
 
 All settings live under the `atlas` namespace (`File → Preferences → Settings → Extensions → Atlas Pipeline Toolkit`):
 
 | Setting | Description |
 | --- | --- |
-| `atlas.apiBaseUrl` | Base URL to your Atlas pipeline API. Expected to expose `/ingest` and `/clips` routes. |
+| `atlas.apiBaseUrl` | Base URL to your Atlas pipeline API. Expected to expose `/ingest` and `/clips` routes (see below). |
 | `atlas.apiKey` | Optional bearer token shared by the Atlas API and the hosted model endpoint. |
-| `atlas.modelEndpoint` | HTTP endpoint that accepts a JSON payload describing the clip and returns analysis metadata. |
+| `atlas.modelEndpoint` | HTTP endpoint that accepts a JSON payload describing the clip and returns analysis metadata (summary, labels, scores, etc.). |
 
-The default `AtlasClient` expects:
+## Atlas API Expectations
 
-- `POST {apiBaseUrl}/ingest` accepts `multipart/form-data` with a `file` field (plus optional `tags` and `description`).
-- `GET {apiBaseUrl}/clips` returns an array of clip objects (`AtlasClip`).
+The default `AtlasClient` assumes:
 
-Adapt `src/atlasClient.ts` if your deployment differs (streaming ingest, GraphQL, RAG triggers, etc.).
+- `POST {apiBaseUrl}/ingest` accepts `multipart/form-data` with a `file` field (plus optional `tags` and `description` fields) and returns a JSON description of the ingested clip.
+- `GET {apiBaseUrl}/clips` returns an array of clip objects with the fields defined in `AtlasClip` (see `src/atlasClient.ts`).
 
-## Admin Console (React)
+Adapt `src/atlasClient.ts` to meet your real Atlas deployment if the endpoints differ (e.g., streaming ingest, GraphQL queries, or RAG triggers).
 
-The `admin-console/` folder contains a Vite + Tailwind dashboard for operations teams.
+## Hosted Model Contract
 
-### Highlights
+`atlas.analyseClip` posts a JSON payload to `atlas.modelEndpoint`:
 
-- **Library administration** – filter, tag, and annotate clips with live syncing against the pipeline API.
-- **Insight workspace** – launch multiple chat tracks in parallel, each talking to a different hosted OSS model.
-- **Model registry** – configure inference gateways (vLLM, TGI, llamafile, Modal, etc.) and toggle defaults.
-- **Local discovery** – auto-detect models exposed at `{apiBaseUrl}/models` and import them in a click.
-- **Contract builder** – capture HTTP method, path, headers, and payload templates so Atlas can call each model correctly.
-
-### Contracts & discovery
-
-Open the **Settings** drawer to scan `GET {apiBaseUrl}/models`, import discovered deployments, and describe their contracts. The chat workspace uses this metadata to craft requests (e.g., `POST https://inference.local/v1/chat` with custom headers).
-
-### Production build
-
-```
-cd admin-console
-npm run build
+```jsonc
+{
+  "clipId": "uuid",
+  "clipName": "Weekly Standup.mp4",
+  "previewUrl": "https://atlas.example/clips/uuid/preview",
+  "transcriptUrl": "https://atlas.example/clips/uuid/transcript",
+  "metadata": { /* provider-specific */ }
+}
 ```
 
-Outputs live in `admin-console/dist/` and can be served via any static host.
+The extension expects a JSON response that may include:
+
+- `summary` – short natural-language synopsis.
+- `labels` – array of string tags or predictions.
+- `scores` – object mapping label → numeric score.
+- Any extra fields are logged under `rawResponse`.
+
+Modify `AtlasClient.analyseClip` if your model needs a different payload or authentication scheme.
+
+## Core Workflows
+
+- **Ingest media** – Run `Atlas: Ingest Media` from the Command Palette or click the toolbar button in the Media Library. Pick one or more files, add optional tags/description, and the extension uploads them to Atlas (falling back to local cache on failure).
+- **Browse & preview** – The *Media Library* tree view displays each clip with status badges. Selecting an item opens a preview webview with metadata and embedded video/audio/image players (when a `previewUrl` is supplied).
+- **Analyse clips** – Right-click a clip (or run `Atlas: Analyse Clip`) to send it to your configured model endpoint. Results stream into the **Atlas Pipeline** output channel for quick review.
 
 ## Extending the Toolkit
 
-- **Atlas Browser sessions** – Extend `AtlasClient` with endpoints that spin up Atlas Browser automations and attach artefacts to clips.
-- **Metadata enrichment** – Add more fields to `AtlasClip` and visualise transcripts, thumbnails, or semantic hashes in the preview.
-- **Workspace commands** – Register additional VS Code commands (e.g., `atlas.runRagSearch`) and surface them via the Activity Bar.
-- **Testing** – Wire up `vscode-test` for extension automation and add integration tests for the admin console using mocked APIs.
+- **Atlas Browser sessions** – Integrate automation flows by augmenting `AtlasClient` with endpoints that spin up Atlas Browser sessions, harvest browsing output, and attach artefacts to clips.
+- **Metadata enrichment** – Add more fields to the `AtlasClip` interface, then extend the preview webview to visualise transcripts, thumbnails, or semantic hashes.
+- **Workspace commands** – Register additional commands (e.g., `atlas.runRagSearch`) and expose them via the Activity Bar container contributed in `package.json`.
+- **Testing** – Hook into VS Code's `vscode-test` runner and craft integration tests that mock Atlas API responses for deterministic validation.
+- **Full-stack workflows** – Embed the React admin console into your Atlas deployment to give non-developers a streamlined view of clips, chats, and analytics while engineers live inside VS Code.
 
 ## Roadmap Ideas
 
@@ -137,8 +187,4 @@ Outputs live in `admin-console/dist/` and can be served via any static host.
 
 ## License
 
-Choose a license (MIT, Apache-2.0, etc.) before distributing the toolkit.
-
----
-
-Need an extra hand? Open an issue or ping @moegon—happy to pair on extending the toolkit or wiring it into your Atlas deployment.
+Set your project licence (MIT, Apache-2.0, etc.) before distribution.

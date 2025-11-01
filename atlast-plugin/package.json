@@ -34,6 +34,17 @@
         "command": "atlas.analyseClip",
         "title": "Atlas: Analyse Clip",
         "category": "Atlas Pipeline"
+      },
+      {
+        "command": "atlas.openChat",
+        "title": "Atlas: Open AI Chat",
+        "category": "Atlas AI",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "atlas.selectChatProvider",
+        "title": "Atlas: Select AI Chat Provider",
+        "category": "Atlas AI"
       }
     ],
     "viewsContainers": {
@@ -95,6 +106,64 @@
           "type": "string",
           "default": "http://localhost:8000/inference",
           "description": "Endpoint for the hosted open-source model used to analyse clips."
+        },
+        "atlas.chatProvider": {
+          "type": "string",
+          "enum": ["lmstudio", "openrouter", "custom"],
+          "default": "lmstudio",
+          "description": "AI chat provider to use (LM Studio, OpenRouter, or custom API)."
+        },
+        "atlas.chatStreaming": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable streaming responses for chat (recommended for better UX)."
+        },
+        "atlas.chatTemperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Temperature for AI responses (0 = deterministic, 2 = very creative)."
+        },
+        "atlas.chatMaxTokens": {
+          "type": "number",
+          "default": 2000,
+          "description": "Maximum tokens for AI responses."
+        },
+        "atlas.lmStudioEndpoint": {
+          "type": "string",
+          "default": "http://localhost:1234/v1/chat/completions",
+          "description": "LM Studio API endpoint (usually http://localhost:1234/v1/chat/completions)."
+        },
+        "atlas.lmStudioModel": {
+          "type": "string",
+          "default": "local-model",
+          "description": "Model name for LM Studio (e.g., 'llama-3-8b', 'mistral-7b')."
+        },
+        "atlas.openRouterApiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "OpenRouter API key. Get one at [openrouter.ai](https://openrouter.ai)."
+        },
+        "atlas.openRouterModel": {
+          "type": "string",
+          "default": "anthropic/claude-3.5-sonnet",
+          "description": "OpenRouter model (e.g., 'anthropic/claude-3.5-sonnet', 'openai/gpt-4')."
+        },
+        "atlas.customApiEndpoint": {
+          "type": "string",
+          "default": "",
+          "description": "Custom API endpoint (OpenAI-compatible format)."
+        },
+        "atlas.customApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for custom endpoint (if required)."
+        },
+        "atlas.customApiModel": {
+          "type": "string",
+          "default": "",
+          "description": "Model name for custom API."
         }
       }
     }
