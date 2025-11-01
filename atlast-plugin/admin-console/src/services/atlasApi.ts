@@ -20,6 +20,86 @@ interface ChatResponsePayload {
   latencyMs?: number;
 }
 
+function normaliseChatResponsePayload(raw: unknown): ChatResponsePayload {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Unexpected chat response: empty body");
+  }
+
+  const obj = raw as Record<string, unknown>;
+
+  // Case 1: Already in expected shape
+  const directMessage = obj.message as
+    | {
+        role?: string;
+        content?: unknown;
+      }
+    | undefined;
+  if (directMessage?.content && typeof directMessage.content === "string") {
+    return {
+      message: {
+        role: "assistant",
+        content: directMessage.content
+      },
+      usage: (obj.usage as Record<string, unknown>) ?? undefined,
+      latencyMs: (obj.latencyMs as number | undefined) ?? undefined
+    };
+  }
+
+  // Case 2: OpenAI-compatible response { choices: [...] }
+  const choices = Array.isArray(obj.choices) ? (obj.choices as Array<Record<string, unknown>>) : undefined;
+  if (choices?.length) {
+    let content = "";
+
+    for (const choice of choices) {
+      const message = choice.message as { role?: string; content?: unknown } | undefined;
+      if (typeof message?.content === "string") {
+        content += message.content;
+        continue;
+      }
+
+      const delta = choice.delta as { role?: string; content?: unknown } | undefined;
+      if (typeof delta?.content === "string") {
+        content += delta.content;
+        continue;
+      }
+
+      if (typeof choice.text === "string") {
+        content += choice.text;
+      }
+    }
+
+    if (!content) {
+      throw new Error("Chat response contained choices but no text content");
+    }
+
+    return {
+      message: {
+        role: "assistant",
+        content
+      },
+      usage: (obj.usage as Record<string, unknown>) ?? undefined,
+      latencyMs: (obj.latency_ms as number | undefined) ?? undefined
+    };
+  }
+
+  // Case 3: LM Studio Responses API sometimes returns { output: { content: [...] } }
+  const output = obj.output as { content?: Array<{ text?: string }> } | undefined;
+  if (output?.content?.length) {
+    const text = output.content.map((item) => item.text ?? "").join("");
+    if (text.trim()) {
+      return {
+        message: {
+          role: "assistant",
+          content: text
+        },
+        usage: (obj.usage as Record<string, unknown>) ?? undefined
+      };
+    }
+  }
+
+  throw new Error("Unrecognised chat response format");
+}
+
 function buildChatPayload(model: ModelDeployment, payload: ChatRequestPayload): unknown {
   const template = model.contract?.requestTemplate;
   if (!template) {
@@ -153,7 +233,8 @@ export async function sendChatRequest(
   }
 
   const response = await fetch(url, init);
-  return handleResponse<ChatResponsePayload>(response);
+  const raw = await handleResponse<unknown>(response);
+  return normaliseChatResponsePayload(raw);
 }
 
 export async function discoverLocalModels(modelDiscoveryBaseUrl: string): Promise<DiscoveredModel[]> {
