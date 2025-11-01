@@ -1,0 +1,118 @@
+{
+  "name": "atlas-pipeline-vscode",
+  "displayName": "Atlas Pipeline Toolkit",
+  "description": "Interact with OpenAI Atlas pipelines from VS Code: ingest multimedia, catalog clips, and analyse them with open-source models.",
+  "version": "0.0.1",
+  "publisher": "atlas-toolkit",
+  "icon": "media/atlas-icon.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "atlas.ingestMedia",
+        "title": "Atlas: Ingest Media",
+        "category": "Atlas Pipeline"
+      },
+      {
+        "command": "atlas.refreshLibrary",
+        "title": "Atlas: Refresh Media Library",
+        "category": "Atlas Pipeline"
+      },
+      {
+        "command": "atlas.openClip",
+        "title": "Atlas: Open Clip",
+        "category": "Atlas Pipeline"
+      },
+      {
+        "command": "atlas.analyseClip",
+        "title": "Atlas: Analyse Clip",
+        "category": "Atlas Pipeline"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "atlasToolkit",
+          "title": "Atlas",
+          "icon": "media/atlas-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "atlasToolkit": [
+        {
+          "id": "atlasMediaLibrary",
+          "name": "Media Library"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "atlas.openClip",
+          "when": "view == atlasMediaLibrary && viewItem == atlasClip",
+          "group": "navigation@1"
+        },
+        {
+          "command": "atlas.analyseClip",
+          "when": "view == atlasMediaLibrary && viewItem == atlasClip",
+          "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "atlas.openClip",
+          "when": "atlasMediaLibraryFocus"
+        },
+        {
+          "command": "atlas.analyseClip",
+          "when": "atlasMediaLibraryFocus"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Atlas Pipeline Toolkit",
+      "properties": {
+        "atlas.apiBaseUrl": {
+          "type": "string",
+          "default": "http://localhost:8080",
+          "description": "Base URL for the Atlas pipeline API."
+        },
+        "atlas.apiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "API key used to authenticate with the Atlas pipeline service."
+        },
+        "atlas.modelEndpoint": {
+          "type": "string",
+          "default": "http://localhost:8000/inference",
+          "description": "Endpoint for the hosted open-source model used to analyse clips."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -p ./ -w",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "prepare": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.0"
+  }
+}

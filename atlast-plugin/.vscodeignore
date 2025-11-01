@@ -1,0 +1,27 @@
+node_modules/**
+.git/**
+src/**
+tsconfig.json
+tslint.json
+eslint.config.cjs
+
+# Admin console (separate deployment)
+admin-console/**
+
+# Mock server (development only)
+mock-server/**
+
+# Documentation (keep README and CHANGELOG only)
+BMAD_SUMMARY.md
+DEPLOYMENT.md
+KNOWN_ISSUES.md
+
+# Development files
+.editorconfig
+*.map
+**/*.ts
+!dist/**/*.js
+
+# Test files
+.vscode-test/**
+out/test/**

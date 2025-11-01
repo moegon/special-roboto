@@ -1,0 +1,17 @@
+{
+  "name": "atlas-mock-server",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Mock Atlas pipeline API with clip catalog and model discovery endpoints for local development.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch --trace-warnings server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "nanoid": "^5.0.7"
+  }
+}
