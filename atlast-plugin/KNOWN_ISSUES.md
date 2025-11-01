@@ -226,6 +226,22 @@ app.use((req, res, next) => {
 
 ---
 
+## LM Studio CORS Disabled
+
+**Issue:** Admin console cannot reach LM Studio when CORS is disabled.
+
+**Symptoms:**
+
+- `TypeError: Failed to fetch` in the browser console when refreshing the **Discovered Local Models** dropdown
+- LM Studio logs `GET /v1/models` but the UI shows an empty dropdown
+- Chat requests appear to post successfully yet no assistant response is rendered
+
+**Fix:** In LM Studio’s desktop app go to **Settings → Server** and enable **CORS**. Restart LM Studio after toggling the setting. Once enabled, reload the admin console and the model list will populate; chat messages will be accepted.
+
+**Explanation:** The admin console runs in a browser context and must obey CORS. LM Studio blocks cross-origin requests by default, so the preflight fails unless CORS is explicitly enabled.
+
+---
+
 ## Workspace State vs Global State
 
 **Current:** Extension uses `workspaceState` for caching

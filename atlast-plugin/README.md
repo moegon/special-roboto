@@ -95,6 +95,8 @@ A companion React dashboard lives in `admin-console/`. It pairs with the VS Code
 
 > 🛈 Running chat-only? Leave **Atlas Pipeline API** blank in the console settings to disable clip syncing while keeping model chat features active.
 
+> ⚠️ When targeting LM Studio, enable **CORS** in the LM Studio server settings (Settings → Server → Enable CORS). Without it, the admin console’s browser requests fail with `TypeError: Failed to fetch`, the model discovery dropdown stays empty, and chat requests never reach the backend.
+
 ### Model discovery & contracts
 
 Open the **Settings** drawer inside the console to:

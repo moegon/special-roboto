@@ -10,6 +10,8 @@ Browser-based control surface for the Atlas media pipeline. Review and tag clips
 - **Contract builder** – capture HTTP method, path, headers, and payload templates for each deployment.
 - **Chat-only mode** – leave the Atlas Pipeline API blank to disable clip syncing while continuing to orchestrate chats.
 
+> ⚠️ LM Studio users: enable **CORS** in LM Studio’s settings (Settings → Server → Enable CORS). Without CORS the browser blocks requests, resulting in `TypeError: Failed to fetch`, an empty model discovery list, and chat messages that never reach the model.
+
 ### Prerequisites
 
 - Node.js ≥ 20.19 (Vite 7 requires Node 20 or 22)
