@@ -70,6 +70,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     removeModel
   } = useAtlasConfig();
   const discovery = useDiscoveredModels(isOpen);
+  const { refetch } = discovery;
   const discoveredModels = discovery.data ?? [];
   const [selectedDiscoveredId, setSelectedDiscoveredId] = useState<string>("");
   const [draftModel, setDraftModel] = useState<ModelDeployment | null>(null);
@@ -101,6 +102,16 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     const trimmed = modelDiscoveryBaseUrl.replace(/\/$/, "");
     return trimmed.endsWith("/v1") ? `${trimmed}/models` : `${trimmed}/v1/models`;
   }, [modelDiscoveryBaseUrl]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    if (!modelDiscoveryBaseUrl?.trim()) {
+      return;
+    }
+    void refetch();
+  }, [isOpen, modelDiscoveryBaseUrl, refetch]);
 
   if (!isOpen) {
     return null;
