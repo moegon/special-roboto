@@ -2,8 +2,11 @@ import * as vscode from "vscode";
 import { AtlasClient, AtlasClip } from "./atlasClient";
 import { MediaItem, MediaLibraryProvider } from "./mediaLibraryProvider";
 import { ClipPreviewPanel } from "./panels/clipPreviewPanel";
+import { AIChatClient } from "./aiChatClient";
+import { ChatPanel } from "./panels/chatPanel";
 
 let client: AtlasClient | undefined;
+let chatClient: AIChatClient | undefined;
 let libraryProvider: MediaLibraryProvider | undefined;
 let outputChannel: vscode.OutputChannel | undefined;
 let extensionUri: vscode.Uri | undefined;
@@ -16,6 +19,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.workspaceState,
     outputChannel
   );
+  chatClient = new AIChatClient(
+    () => vscode.workspace.getConfiguration("atlas"),
+    outputChannel
+  );
   libraryProvider = new MediaLibraryProvider(client);
 
   context.subscriptions.push(outputChannel);
@@ -25,6 +32,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.commands.registerCommand("atlas.refreshLibrary", () => libraryProvider?.refresh()),
     vscode.commands.registerCommand("atlas.openClip", (item?: MediaItem | AtlasClip) => openClip(item)),
     vscode.commands.registerCommand("atlas.analyseClip", (item?: MediaItem | AtlasClip) => analyseClip(item)),
+    vscode.commands.registerCommand("atlas.openChat", () => openChat()),
+    vscode.commands.registerCommand("atlas.selectChatProvider", () => selectChatProvider()),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("atlas")) {
         void libraryProvider?.refresh();
@@ -181,4 +190,35 @@ async function resolveClip(item?: MediaItem | AtlasClip): Promise<AtlasClip | un
   }
 
   return await libraryProvider.pickClip();
+}
+
+function openChat(): void {
+  if (!chatClient || !extensionUri || !outputChannel) {
+    return;
+  }
+
+  ChatPanel.show(extensionUri, chatClient, outputChannel);
+}
+
+async function selectChatProvider(): Promise<void> {
+  const providers = [
+    { label: "LM Studio", description: "Local models via LM Studio", value: "lmstudio" },
+    { label: "OpenRouter", description: "Cloud models via OpenRouter API", value: "openrouter" },
+    { label: "Custom API", description: "Your own OpenAI-compatible endpoint", value: "custom" }
+  ];
+
+  const selected = await vscode.window.showQuickPick(providers, {
+    placeHolder: "Select AI chat provider"
+  });
+
+  if (selected) {
+    await vscode.workspace.getConfiguration("atlas").update(
+      "chatProvider",
+      selected.value,
+      vscode.ConfigurationTarget.Global
+    );
+
+    void vscode.window.showInformationMessage(`Chat provider set to: ${selected.label}`);
+    outputChannel?.appendLine(`[Chat] Provider changed to: ${selected.value}`);
+  }
 }
